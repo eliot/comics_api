@@ -7,6 +7,9 @@ name = "pypi"
 
 [packages]
 flask-restful = "*"
+peewee = "*"
+psycopg2 = "*"
+scrapy = "*"
 
 [requires]
 python_version = "3.7"

@@ -23,6 +23,21 @@ https://www.comixology.com/Detective-Comics-1937-2011-27/digital-comic/10900
 
 ### Problems with Comixology
 Comixology sometimes groups comics together e.g. #28-29, which we don't want.
+[Find a example URL.]
+
+### How do we know if a page is a Issue detail page?
+e.g. https://www.comixology.com/Guerillas-1/digital-comic/12
+
+URL is a 200
+- URL follows pattern comixology.com/.+/digital-comic/(\d+)\?.+
+
+Regex: https://regex101.com/r/w9UPr9/1
+
+### 404
+Example: https://www.comixology.com/Atomic-Robo-Vol-1-1-of-6/digital-comic/1
+status code is in fact a 404, probably enough on it's own.
+
+Page also says "Oops" `//*[@id="page_content_container"]/div[2]/div/div/div/h1`
 
 ## Fandom
 

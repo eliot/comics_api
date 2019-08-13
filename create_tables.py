@@ -1,16 +1,15 @@
-from peewee import *
-
 from schema import *
 
 models = [
     Publisher,
     Series,
     Volume,
-    StoryArc,
-    Playlist,
+    #StoryArc,
+    #Playlist,
     Issue,
-    Continuity,
-    Universe,
+    ComixologyIngestedIssue,
+    #Continuity,
+    #Universe,
 ]
 
 db.create_tables(models)

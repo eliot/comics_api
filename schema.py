@@ -1,8 +1,6 @@
 import os
 from peewee import *
-from config import DB_URI
-
-db = SqliteDatabase(DB_URI)
+from config import db
 
 class BaseModel(Model):
 	class Meta:
@@ -28,8 +26,10 @@ class StoryArc(BaseModel):
 	name = CharField()
 
 class Playlist(BaseModel):
-	# user curated lists of comics
+	'''User created lists of comics'''
 	name = CharField()
+	#owner = ForeignKeyField(User, backref='owner')
+
 
 class Issue(BaseModel):
 	number = IntegerField()
@@ -39,6 +39,19 @@ class Issue(BaseModel):
 	series = ForeignKeyField(Series, backref='issues')
 	summary = TextField()
 	cover_url = CharField()
+
+class PlayListItem(BaseModel):
+	order = IntegerField()
+	issue = ForeignKeyField(Issue)
+	playlist = ForeignKeyField(Playlist, backref='items')
+
+class ComixologyIssue(Issue):
+	'''Table to hold issues scraped serially from Comixology URLs'''
+	class Meta:
+		db_table = 'issue_comixology'
+	url = TextField()
+	issue_id = IntegerField()
+	date_scraped = DateTimeField()
 
 class CreativePerson(BaseModel):
 	'''A person who wrote, drew, or inked an issue'''
@@ -51,4 +64,5 @@ class Continuity(BaseModel):
 
 # Universe
 class Universe(BaseModel):
+	'''E.g. Marvel Cinematic Universe'''
 	pass
