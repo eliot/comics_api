@@ -20,6 +20,7 @@ class Volume(BaseModel):
 	# a collection of issues
 	# - run of the comics, e.g. 3 volumes of Batman
 	name = CharField()
+	number = IntegerField() # e.g. Volume 1
 	
 class StoryArc(BaseModel):
 	# e.g. Infinity War or Knightfall
@@ -30,39 +31,30 @@ class Playlist(BaseModel):
 	name = CharField()
 	#owner = ForeignKeyField(User, backref='owner')
 
-
 class Issue(BaseModel):
-	number = IntegerField()
-	published = DateTimeField()
+	issue_number = IntegerField()
+	date_release_print = DateTimeField()
+	date_release_digital = DateTimeField()
 	publisher = ForeignKeyField(Publisher, backref='issues')
 	volume = ForeignKeyField(Volume, backref='issues')
 	series = ForeignKeyField(Series, backref='issues')
 	summary = TextField()
 	cover_url = CharField()
+	cover_price = FloatField()
 
 class PlayListItem(BaseModel):
 	order = IntegerField()
 	issue = ForeignKeyField(Issue)
 	playlist = ForeignKeyField(Playlist, backref='items')
 
-class ComixologyIssue(Issue):
-	'''Table to hold issues scraped serially from Comixology URLs'''
-	class Meta:
-		db_table = 'issue_comixology'
-	url = TextField()
-	issue_id = IntegerField()
-	date_scraped = DateTimeField()
-
-class CreativePerson(BaseModel):
-	'''A person who wrote, drew, or inked an issue'''
+class Creator(BaseModel):
+	'''A writer, drawer, or inker'''
 	name = CharField()
-	# role = Enum { Writer, Drawer, Inker }
+	# role = Enum { Writer, Drawer/Pencils, Inker }
 
-# Continuity
 class Continuity(BaseModel):
 	pass
 
-# Universe
 class Universe(BaseModel):
 	'''E.g. Marvel Cinematic Universe'''
 	pass

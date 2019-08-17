@@ -1,7 +1,8 @@
-## Uncomment the databsae you need
+## Uncomment the database you need
 #
 ## SQlite:
-# DB_URI = 'test.db'
+# from peewee import SqliteDatabase
+# db = SqliteDatabase('my_app.db')
 # 
 ## Postgres
 from peewee import PostgresqlDatabase

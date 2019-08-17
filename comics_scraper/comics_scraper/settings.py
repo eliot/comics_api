@@ -14,6 +14,8 @@ BOT_NAME = 'comics_scraper'
 SPIDER_MODULES = ['comics_scraper.spiders']
 NEWSPIDER_MODULE = 'comics_scraper.spiders'
 
+DOWNLOAD_DELAY = 1
+
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'comics_scraper (+http://www.yourdomain.com)'
@@ -58,9 +60,10 @@ ROBOTSTXT_OBEY = True
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
+EXTENSIONS = {
 #    'scrapy.extensions.telnet.TelnetConsole': None,
-#}
+   'scrapy.extensions.closespider.CloseSpider': 500,
+}
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html

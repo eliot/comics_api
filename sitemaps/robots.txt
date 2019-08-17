@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /cart/
+Disallow: /search/
+Disallow: /cgi-bin/
+Sitemap: http://www.comixology.com/sitemap.xml
