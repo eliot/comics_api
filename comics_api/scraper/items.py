@@ -3,7 +3,7 @@
 import copy
 from scrapy import Item
 
-from ..schema import *
+from ..models.comixology import *
 
 
 class ModelItem(Item):
@@ -21,7 +21,7 @@ class ModelItem(Item):
         for key in model._meta.fields.keys():
             self.fields[key] = Field()
         if kwds is not None:
-            for key, processor in kwds.iteritems():
+            for key, processor in kwds.items():
                 self.fields[key] = Field(input_processor=MapCompose(
                     strip_whitespace, processor
                 ))
@@ -38,4 +38,15 @@ class ModelItem(Item):
     def model(self):
         return self._model
 
-PersonItem = ModelItem()
+PeeweeIssueItem = ModelItem(ComixologyIssue())
+PeeweeCreatorItem = ModelItem(ComixologyCreator()) #m2m
+PeeweeCreatorIssueJunctionItem = ModelItem(ComixologyIssueCreatorJunction())
+
+PeeweeSeriesItem = ModelItem(ComixologySeries()) #m21
+PeeweeStoryArcItem = ModelItem(ComixologyStoryArc()) #m21
+PeeweePublisherItem = ModelItem(ComixologyPublisher()) #m21
+PeeweeGenreItem = ModelItem(ComixologyGenre()) #many to many
+
+# Extend the items; Items may use some fields that the database doesn't
+class IssueItem(PeeweeIssueItem):
+    dumbfield = Field()

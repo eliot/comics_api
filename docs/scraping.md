@@ -13,6 +13,45 @@ https://www.comixology.com/sitemap.xml
 https://www.comixology.com/Sitemap/1/sitemap_0.xml
 https://www.comixology.com/Sitemap/1/sitemap_0.xml
 
+### Issue Item properties
+* url
+* issue_id
+* title
+* issue_number
+* issue_number_end
+* multi_issue
+* series
+* series_url
+* price
+* cover_url
+* description
+* publisher
+* publisher_url
+* writers
+* writers_urls
+* artists
+* artists_urls
+* colors
+* colors_urls
+* inks
+* inks_urls
+* pencils
+* pencils_urls
+* story_arc
+* story_arc_url
+* page_count
+* release_date_print
+* release_date_digital
+* age_rating
+* sold_by
+* genre_names
+* genre_urls
+* genres
+* collected_edition_url
+* ratings_count
+* star_rating
+
+
 ### Sample pages
 
 `Issue` model:

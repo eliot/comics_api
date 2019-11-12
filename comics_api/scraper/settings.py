@@ -11,8 +11,8 @@
 
 BOT_NAME = 'comics_scraper'
 
-SPIDER_MODULES = ['comics_scraper.spiders']
-NEWSPIDER_MODULE = 'comics_scraper.spiders'
+SPIDER_MODULES = ['scraper.spiders']
+NEWSPIDER_MODULE = 'scraper.spiders'
 
 DOWNLOAD_DELAY = 1
 

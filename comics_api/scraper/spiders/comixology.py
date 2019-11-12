@@ -4,22 +4,15 @@ from scrapy import Request
 from pprint import pprint as pp
 from re import compile as re_compile
 
-from comics_scraper.items import *
+from ..items import IssueItem, CreatorItem, SeriesItem, GenreItem
+from ..utils import clean_url
+from ..config import db_comixology
 
 
 class ComixologySpider(SitemapSpider):
     name = 'comixology'
     allowed_domains = ['comixology.com']
     download_delay = 2
-    # start_urls = [
-    #     'https://www.comixology.com/Guerillas-1/digital-comic/12',
-    #     'https://www.comixology.com/Guerillas-1/digital-comic/500',
-    #     'https://www.comixology.com/Guerillas-1/digital-comic/5000',
-    #     'https://www.comixology.com/Archie-1/digital-comic/27509',
-    #     'https://www.comixology.com/The-Best-of-Archie-Comics-Deluxe-Edition/digital-comic/417673',
-    #     'https://www.comixology.com/Sakura-Pakk-vs-Rumble-Pak-Bleed-MidSummers-Dream/digital-comic/52',
-    #     'https://www.comixology.com/Detective-Comics-1937-2011-28-29/digital-comic/10901',
-    # ]
     sitemap_urls = ['https://www.comixology.com/sitemap.xml']
     sitemap_rules = [
         ('\/digital-comic\/', 'parse_issue'),
@@ -30,7 +23,9 @@ class ComixologySpider(SitemapSpider):
         ('\/comics-genre\/', 'parse_genre'),
     ]
 
+    # for testing purposes
     custom_settings = {
+		'DATABASE': db_comixology,
         'CLOSESPIDER_PAGECOUNT': 5
     }
 
@@ -44,8 +39,8 @@ class ComixologySpider(SitemapSpider):
 
 
     def parse_issue(self, response):
-
         issue = {}
+
         issue['issue_id'] = int(response.url.split('/')[-1].split('?')[0])
         issue['title'] = response.xpath('//*[@id="column2"]/h1/text()').get()
 
@@ -66,25 +61,42 @@ class ComixologySpider(SitemapSpider):
 
             if len(parts) > 1:
                 parts = parts.split('-')
-                issue['issue_number']  = int(parts[0]) # the beginning issue number
-                issue['issue_number_end']  = int(parts[1]) # the beginning issue number
+                # the beginning issue number
+                issue['issue_number']  = int(parts[0]) 
+                # the ending issue number
+                issue['issue_number_end']  = int(parts[1]) 
             else:
                 # not a double issue
                 issue['issue_number'] = int(parts)
 
 
-        issue['double_issue'] = None
+        issue['multi_issue'] = \
+			True if issue['issue_number'] and issue['issue_number_end']
+			else None
         
 
         issue['series'] = issue['title'].split('#')[0].strip()
-        issue['series_url'] = response.xpath('//*[@id="cmx_breadcrumb"]/a[3]/@href').get()
+        issue['series_url'] = response
+			.xpath('//*[@id="cmx_breadcrumb"]/a[3]/@href')
+			.get()
+
+        # handle series first (many to one foreign key)
+        if issue['series_url']:
+            yield Request(url=issue['series_url'], callback=self.parse_series)
 
         try:
-            issue['price'] = float(response.xpath('//h5[contains(@class, "item-price")]/text()').get().replace('$', ''))
+            issue['price'] = float(
+				response
+					.xpath('//h5[contains(@class, "item-price")]/text()')
+					.get()
+					.replace('$', '')
+			)
         except ValueError:
-            issue['price'] = None # the price = FREE
+			# the price = FREE
+            issue['price'] = None 
 
-        issue['cover_url'] = response.xpath('//*[@id="cover"]/img/@src').get()
+        issue['cover_url'] = response
+			.xpath('//*[@id="cover"]/img/@src').get()
 
         issue['description'] = response.xpath('//*[@id="column2"]/section[@class="item-description"]/text()')
         # handle cases when there is no disclaimer field in the description
@@ -136,7 +148,7 @@ class ComixologySpider(SitemapSpider):
             issue['pencils_urls']):
             yield Request(url=url, callback=self.parse_creator)
 
-        issue['story_arc_name'] = response.xpath('normalize-space(//*[@id="column3"]/div[@class="credits"]/div[contains(text(), \'Story Arc\')]/following-sibling::a/text())').get()
+        issue['story_arc'] = response.xpath('normalize-space(//*[@id="column3"]/div[@class="credits"]/div[contains(text(), \'Story Arc\')]/following-sibling::a/text())').get()
         issue['story_arc_url'] = response.xpath('//*[@id="column3"]/div[@class="credits"]/div[contains(text(), \'Story Arc\')]/following-sibling::a/@href').get()
 
         # handle story arcs first
@@ -165,17 +177,15 @@ class ComixologySpider(SitemapSpider):
 
         # If this has a value, then it is part of a collected edition. The collected edition is itself an issue.
         issue['collected_edition_url'] = response.xpath('//*[@class="collectedEdition"]/div[contains(text(), \'collected edition\')]/following-sibling::a/@href').get()
-        issue['has_collected_edition'] = False
 
         # handle collected editions first
         if issue['collected_edition_url']:
-            issue['has_collected_edition'] = True
             yield Request(url=issue['collected_edition_url'], callback=self.parse_issue)
 
         issue['ratings_count'] = response.xpath('//div[@itemprop="reviewCount"]/text()').get()
         issue['star_rating'] = int(response.xpath('//div[@class="rating-total hidden"]/text()').get())
 
-        yield issue
+        yield IssueItem(issue)
 
     def parse_creator(self, response):
         creator = {}
@@ -185,18 +195,24 @@ class ComixologySpider(SitemapSpider):
 
     def parse_genre(self, response):
         genre = {}
-        creator['name'] = response.xpath('normalize-space(//*[@id="cmx_breadcrumb"]/h2/text())').get()
-        creator['url'] = self.clean_url(response.url)
-        yield creator
+        genre['name'] = response.xpath('normalize-space(//*[@id="cmx_breadcrumb"]/h2/text())').get()
+        genre['url'] = self.clean_url(response.url)
+        yield genre
 
     def parse_publisher(self, response):
-        pass
-
-    def parse_creator(self, response):
-        pass
+        publisher = {}
+        publisher['name'] = response.xpath('normalize-space(//*[@id="cmx_breadcrumb"]/h2/text())').get()
+        publisher['url'] = self.clean_url(response.url)
+        yield publisher
 
     def parse_story_arc(self, response):
-        pass
+        story_arc = {}
+        story_arc['name'] = response.xpath('normalize-space(//*[@id="cmx_breadcrumb"]/h2/text())').get()
+        story_arc['url'] = self.clean_url(response.url)
+        yield story_arc
 
     def parse_series(self, response):
-        pass
+        series = {}
+        series['name'] = response.xpath('normalize-space(//*[@id="cmx_breadcrumb"]/h2/text())').get()
+        series['url'] = self.clean_url(response.url)
+        yield SeriesItem(series)
