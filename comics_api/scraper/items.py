@@ -1,11 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import copy
-from scrapy import Item
+from scrapy import Item, Field
 
 from ..models.comixology import *
+'''
+class GenericItem(Item):
+	date_scraped = DateTimeField(datetime.now, default=datetime.now)
+	url = CharField(primary_key=True) 
+	title = CharField()
+	description = TextField()
 
-
+class Issue(GenericItem):
+	
+'''
 class ModelItem(Item):
     """
     Make Peewee models easily turn into Scrapy Items.
@@ -46,7 +54,12 @@ PeeweeSeriesItem = ModelItem(ComixologySeries()) #m21
 PeeweeStoryArcItem = ModelItem(ComixologyStoryArc()) #m21
 PeeweePublisherItem = ModelItem(ComixologyPublisher()) #m21
 PeeweeGenreItem = ModelItem(ComixologyGenre()) #many to many
-
-# Extend the items; Items may use some fields that the database doesn't
+'''
+# Extend the items; Items may use some fields that the database doesn't care about
 class IssueItem(PeeweeIssueItem):
-    dumbfield = Field()
+	#def __init__(self, n):
+	#	super().__init__(n)
+    testfield = Field()
+#IssueItem = PeeweeIssueItem
+CreatorItem = PeeweeCreatorItem
+'''

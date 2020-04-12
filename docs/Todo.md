@@ -1,8 +1,12 @@
-[x] test imports of comixology models
-[ ] test imports of base models
-[ ] Create all models in utils.tables
-[ ] Write Peewee/Postgres Scrapy pipeline
-[ ] Create stored proc to copy data from Comix scrape tables to base tables
-[ ] Make simple rest api (unprotected)
-[ ] Make web admin panel (unprotected)
-[ ] Add authn and authz to admin panel
+- [x] test imports of comixology models
+- [x] test imports of base models
+- [x] Create all models in utils.tables
+- [ ] Fix manual spider run (scrapy runspider blah/comixology.py)
+- [ ] Write Peewee/Postgres Scrapy pipeline
+- [ ] Add any more items to items.py if necessary
+- [ ] Enable pipeline in settings.py
+- [ ] Find a way to daemonize spider
+- [ ] Create stored proc to copy data from Comix scrape tables to base tables
+- [ ] Make simple rest api (unprotected)
+- [ ] Make web admin panel (unprotected)
+- [ ] Add authn and authz to admin panel (a separate microservice?)

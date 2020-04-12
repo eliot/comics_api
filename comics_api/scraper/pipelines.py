@@ -2,6 +2,12 @@ from ..models.comixology import *
 
 class PeeweePipeline(object):
     '''Save to DB using Peewee'''
+    
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            db=crawler.settings.get('MONGO_URI')
+        )
 
 	# setup 
     def open_spider(self, spider):

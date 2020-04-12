@@ -25,14 +25,14 @@ class ComixologySpider(SitemapSpider):
 
     # for testing purposes
     custom_settings = {
-		'DATABASE': db_comixology,
+        'DATABASE': db_comixology,
         'CLOSESPIDER_PAGECOUNT': 5
     }
 
     # used to grab the issue number
     re_issue_number = re_compile('\#([\d-]{0,6})')
 
-
+    @staticmethod
     def clean_url(url):
         '''Remove url parameters'''
         return url.split('?')[0] if url else None
@@ -71,13 +71,13 @@ class ComixologySpider(SitemapSpider):
 
 
         issue['multi_issue'] = \
-			True if issue['issue_number'] and issue['issue_number_end']
+			True if issue['issue_number'] and issue['issue_number_end'] \
 			else None
         
 
         issue['series'] = issue['title'].split('#')[0].strip()
-        issue['series_url'] = response
-			.xpath('//*[@id="cmx_breadcrumb"]/a[3]/@href')
+        issue['series_url'] = response \
+			.xpath('//*[@id="cmx_breadcrumb"]/a[3]/@href') \
 			.get()
 
         # handle series first (many to one foreign key)
@@ -92,11 +92,11 @@ class ComixologySpider(SitemapSpider):
 					.replace('$', '')
 			)
         except ValueError:
-			# the price = FREE
+            # the price = FREE
             issue['price'] = None 
 
-        issue['cover_url'] = response
-			.xpath('//*[@id="cover"]/img/@src').get()
+        issue['cover_url'] = response \
+            .xpath('//*[@id="cover"]/img/@src').get()
 
         issue['description'] = response.xpath('//*[@id="column2"]/section[@class="item-description"]/text()')
         # handle cases when there is no disclaimer field in the description
