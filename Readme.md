@@ -33,3 +33,7 @@ Create the database schema
 
     $ FLASK_APP=rest_api.py flask run
 
+## Vagrant setup
+On Windows w/ Hyper-V
+
+    vagrant up --provider=hyperv

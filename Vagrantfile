@@ -2,8 +2,8 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-  #config.vm.box = "comics_api"
-  config.vm.box_url = "generic/ubuntu1804"
+  config.vm.box = "generic/ubuntu1804"
+  #config.vm.box_url = "generic/ubuntu1804"
   config.vm.network "forwarded_port", guest: 80, host: 8080
 
   # Create a forwarded port mapping which allows access to a specific port
@@ -18,13 +18,13 @@ Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox" do |v|
     v.memory = "1024"
     v.name = "comics_api"
-    v.cups = 1
+    v.cpus = 1
   end
 
   config.vm.provider "hyperv" do |v|
     v.memory = "1024"
-    v.vname = "comics_api"
-    v.cups = 1
+    v.vmname = "comics_api"
+    v.cpus = 1
   end
 
   # Enable provisioning with a shell script. Additional provisioners such as

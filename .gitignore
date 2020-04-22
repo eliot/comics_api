@@ -10,10 +10,6 @@ __pycache__/
 # C extensions
 *.so
 
-*.db
-.vscode/
-config.py
-
 # Distribution / packaging
 .Python
 build/
@@ -113,3 +109,9 @@ venv.bak/
 
 # Java detritus
 *.class
+
+# my stuff
+*.db
+.vscode
+config.py
+.vagrant
