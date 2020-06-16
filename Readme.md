@@ -37,3 +37,8 @@ Create the database schema
 On Windows w/ Hyper-V
 
     vagrant up --provider=hyperv
+
+
+## WSL Vagrant + ansible
+
+  export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS="1"

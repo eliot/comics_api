@@ -1,0 +1,9 @@
+---
+- hosts: all
+  tasks:
+    - name: install packages
+      package: 
+        name:
+          - postgresql
+          - nginx
+          - mongodb
