@@ -1,0 +1,10 @@
+- change nginx configs to use new ssl syntax (remove nginx deprecation warnings). Remove 'ssl on;' and put ssl in the listen line'
+- fix issue with redirecting metacomic.xyz to www.www.metacomic.xyz. metacomic.xyz is not resolving to www.metacomic.xyz in a timely fashion.
+- create second bjoern instance to run site.py webapp
+- rebuild and test database models (changes have been made to some model's primary key)
+- retest Tier 2 scrape ingestion layer - reevaluate where we are
+- add demo site to Readme
+- create favicon
+- remove templates/ssl
+- refactor bjoern/python app stuff into new playbook
+- create local development inventory file
