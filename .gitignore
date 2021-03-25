@@ -1,6 +1,9 @@
 # project level
 config.py
-comics_api/config.py
+comics/config.py
+comics/requirements.txt
+production.inventory
+secrets.yml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

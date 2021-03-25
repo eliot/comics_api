@@ -1,0 +1,181 @@
+# generate self signed certificate and install it
+
+# copy an nginx config that doesnt have any restrictions or ssl in order to validate the domains for ssl purposes
+- name: copy bootstrap vhost config to install ssl certs
+  template: >
+      src={{inventory_dir}}/templates/nginx/vhost-basic.conf.j2
+      dest={{vhosts_dir}}/{{ app_domain.root }}.conf
+
+- name: enable nginx vhost
+  file: >
+    src={{vhosts_dir}}/{{ app_domain.root }}.conf
+    dest=/etc/nginx/sites-enabled/{{ app_domain.root }}.conf
+    state=link
+  become: yes
+
+- name: reload Nginx
+  service: name=nginx state=reloaded
+  become: yes
+
+
+
+- name: Generate an OpenSSL private key with the default values (4096 bits, RSA)
+  community.crypto.openssl_privatekey:
+    path: /etc/ssl/private/{{app_domain.root}}.pem
+
+- name: Generate letsencrypt account key
+  community.crypto.openssl_privatekey:
+    path: /etc/ssl/private/acme_account.pem
+
+- name: Ensure /etc/ssl/csr dir exists
+  file:
+    path: /etc/ssl/csr
+    state: directory
+
+- name: Ensure /etc/nginx/ssl dir exists
+  file:
+    path: /etc/nginx/ssl
+    state: directory
+
+# - name: create /etc/nginx/ssl
+#   file: path=/etc/nginx/ssl state=directory
+#   become: yes
+
+# - name: copy openssl config
+#   template: >
+#       src=../templates/ssl/openssl.cnf.j2
+#       dest=/tmp/{{app_domain.root}}.cnf
+
+# letsencrypt wants DER format
+# - name: create private key
+#   command: >
+#       openssl genrsa -out /tmp/{{app_domain.root}}.key 2048
+  # become: yes
+
+# using DER format because that's what Let's Encrypt uses
+# OLD VERSION THAT FAILS CUZ x509 DOESNT WORK WITH DER CSR INPUTS APPARENTLY:
+#- name: create signing request
+#  command: >
+#      openssl req -new -sha256 \
+#      -key /tmp/{{domain_name}}.key \
+#      -out /tmp/{{domain_name}}.csr -outform der \
+#      -config /tmp/{{domain_name}}.cnf
+#
+#- name: create self-signed certificate
+#  command: >
+#      openssl x509 -req -days 365 \
+#      -in  /tmp/{{domain_name}}.csr -inform der \
+#      -signkey /tmp/{{domain_name}}.key \
+#      -out /tmp/{{domain_name}}.crt
+
+# - name: create pki dir
+#   file:
+#     path: /etc/pki/cert/csr/
+#     state: directory
+#     mode: '0755'
+#     owner: "{{ app_user }}"
+#     group: "{{ app_user }}"
+#     recurse: yes
+
+- name: Create certificate signing request.
+  community.crypto.openssl_csr:
+    path: /etc/ssl/csr/{{app_domain.root}}.csr
+    privatekey_path: /etc/ssl/private/{{app_domain.root}}.pem
+    subject_alt_name: "DNS:{{app_domain.root}},DNS:{{app_domain.primary}},DNS:{{app_domain.api}},DNS:{{app_domain.static}}"
+    # subject_alt_name: "{{ app_domain.values() | map('regex_replace', '^', 'DNS:') | list }}"
+    common_name: "{{ app_domain.root }}"
+    force: yes
+  # register: csr
+  # with_dict: "{{app_domain}}"
+
+# - name: create certificate signing request
+#   command: >
+#       openssl req -new \
+#       -sha256 \
+#       -key /etc/ssl/private/{{app_domain.root}}.pem -inform pem \
+#       -out /tmp/{{app_domain.root}}.csr -outform der \
+#       -config /tmp/{{app_domain.root}}.cnf
+
+# Note: the extension file is the same as the config
+
+- name: Create certificate challenge.
+  community.crypto.acme_certificate:
+    acme_version: 2
+    acme_directory: https://acme-v02.api.letsencrypt.org/directory
+    terms_agreed: yes
+    account_key_src: /etc/ssl/private/acme_account.pem
+    csr: /etc/ssl/csr/{{app_domain.root}}.csr
+    dest: /etc/nginx/ssl/{{app_domain.root}}.crt
+    fullchain_dest: /etc/nginx/ssl/{{app_domain.root}}-fullchain.crt
+    force: yes
+  register: cert_challenge
+
+# - name: Fulfill certificate challenge.
+#   copy:
+#     dest: "{{app_webroot}}/{{cert_challenge['challenge_data'][app_domain.root]['http-01']['resource'] }}"
+#     content: "{{ cert_challenge['challenge_data'][app_domain.root]['http-01']['resource_value'] }}"
+#   when: cert_challenge is changed
+
+- name: Ensure .well-known/acme-challenge dir exists
+  file:
+    path: "{{app_webroot}}/.well-known/acme-challenge"
+    state: directory
+  when: cert_challenge is changed
+
+- name: Fulfill certificate challenge.
+  copy:
+    dest: "{{app_webroot}}/{{ item.value['http-01']['resource'] }}"
+    content: "{{ item.value['http-01']['resource_value'] }}"
+  loop: "{{ cert_challenge.challenge_data | dict2items }}"
+  when: cert_challenge is changed
+
+- name: Validate challenge and retrieve the cert and intermediate certificate
+  community.crypto.acme_certificate:
+    acme_version: 2
+    acme_directory: https://acme-v02.api.letsencrypt.org/directory
+    terms_agreed: yes
+    account_key_src: /etc/ssl/private/acme_account.pem
+    csr: /etc/ssl/csr/{{app_domain.root}}.csr
+    dest: /etc/nginx/ssl/{{app_domain.root}}.crt
+    fullchain_dest: /etc/nginx/ssl/{{app_domain.root}}-fullchain.crt
+    chain_dest: /etc/nginx/ssl/{{app_domain.root}}-intermediate.crt
+    data: "{{ cert_challenge }}"
+    force: yes
+  register: cert_installed
+
+
+#
+# - name: Let the challenge be validated and retrieve the cert and intermediate certificate
+#   letsencrypt:
+#     acme_version: 2
+#     account_key_src: /tmp/{{app_domain.root}}.key
+#     csr: /tmp/{{app_domain.root}}.csr
+#     dest: /etc/nginx/ssl/{{app_domain.root}}.crt
+#     fullchain_dest: /etc/nginx/ssl/{{app_domain.root}}-fullchain.crt
+#     chain_dest: /etc/nginx/ssl/{{app_domain.root}}-intermediate.crt
+#     data: "{{ cert_challenge }}"
+#   when: app_env == 'production'
+#
+#
+# - name: create /etc/nginx/ssl
+#   file: path=/etc/nginx/ssl state=directory
+#   become: yes
+#
+# - name: install cert
+#   command: mv /tmp/{{app_domain.root}}.crt /etc/nginx/ssl
+#   become: yes
+#
+# - name: install private key
+#   command: mv /tmp/{{app_domain.root}}.key /etc/nginx/ssl
+#   become: yes
+#
+- name: reload Nginx
+  service: name=nginx state=reloaded
+  become: yes
+#
+# # cleanup
+# - name: delete /tmp/{{app_domain.root}}.csr
+#   file: path=/tmp/{{app_domain.root}}.csr state=absent
+#
+# - name: delete /tmp/{{app_domain.root}}.cnf
+#   file: path=/tmp/{{app_domain.root}}.cnf state=absent

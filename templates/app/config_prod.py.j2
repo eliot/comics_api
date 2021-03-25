@@ -1,0 +1,10 @@
+# production
+APP_HOST = 'localhost'
+APP_PORT = 7733
+SQLALCHEMY_DATABASE_URI = 'postgresql://{{app_db_user}}:{{app_db_pw}}@localhost/{{app_db}}'
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKED = 'redis://localhost:6379/0'
+TESTING = False
+DEBUG = False
+ENV = 'production'
+SQLALCHEMY_TRACK_MODIFICATIONS = False

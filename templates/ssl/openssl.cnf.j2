@@ -1,0 +1,16 @@
+[req]
+prompt = no
+distinguished_name = dn
+req_extensions = ext
+
+[dn]
+CN = www.{{app_domain.root}}
+O = {{app_domain.root|capitalize}}
+L = Princeton
+ST = New Jersey
+C = US
+
+emailAddress = webmaster@{{app_domain.root}}
+
+[ext]
+subjectAltName = DNS:www.{{app_domain.root}},DNS:{{app_domain.root}},DNS:s.{{app_domain.root}}

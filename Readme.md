@@ -7,15 +7,15 @@ This repository represents an API for comic books, to be used as the backend for
 
 To install pipenv
 
-    comics_api# pip install pipenv
+    comics# pip install pipenv
 
 Install project dependencies
 
-    comics_api$ pipenv install
+    comics$ pipenv install
 
-Activate the Python environment
+Activate the Python environment (do this before running any python or scrapy commands.)
 
-    comics_api$ pipenv shell
+    comics$ pipenv shell
 
 ## Setting up the project
 
@@ -27,7 +27,7 @@ Create the database schema
 
 ## Running the scraper
 
-    scrapy runspider comics_scraper/comics_scraper/spiders/comixology.py
+    scrapy runspider comics/scraper/spiders/comixology.py
 
 ## Launching the webserver
 

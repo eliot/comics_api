@@ -18,13 +18,13 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider "virtualbox" do |v|
     v.memory = "1024"
-    v.name = "comics_api"
+    v.name = "comics"
     v.cpus = 1
   end
 
   config.vm.provider "hyperv" do |v|
     v.memory = "1024"
-    v.vmname = "comics_api"
+    v.vmname = "comics"
     v.cpus = 1
   end
 

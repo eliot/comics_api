@@ -1,0 +1,77 @@
+# generate self signed certificate and install it
+
+- name: copy openssl config
+  template: >
+      src=../templates/ssl/openssl.cnf.j2
+      dest=/tmp/{{app_domain.root}}.cnf
+
+- name: create private key
+  command: >
+      openssl genrsa -out /tmp/{{app_domain.root}}.key 2048
+
+# using DER format because that's what Let's Encrypt uses
+# OLD VERSION THAT FAILS CUZ x509 DOESNT WORK WITH DER CSR INPUTS APPARENTLY:
+#- name: create signing request
+#  command: >
+#      openssl req -new -sha256 \
+#      -key /tmp/{{domain_name}}.key \
+#      -out /tmp/{{domain_name}}.csr -outform der \
+#      -config /tmp/{{domain_name}}.cnf
+#
+#- name: create self-signed certificate
+#  command: >
+#      openssl x509 -req -days 365 \
+#      -in  /tmp/{{domain_name}}.csr -inform der \
+#      -signkey /tmp/{{domain_name}}.key \
+#      -out /tmp/{{domain_name}}.crt
+
+- name: create signing request
+  command: >
+      openssl req -new \
+      -sha256 \
+      -key /tmp/{{app_domain.root}}.key \
+      -out /tmp/{{app_domain.root}}.csr \
+      -config /tmp/{{app_domain.root}}.cnf
+
+# Note: the extension file is the same as the config
+
+- name: create self-signed certificate
+  command: >
+      openssl x509 -req \
+      -days 365 \
+      -in  /tmp/{{app_domain.root}}.csr \
+      -signkey /tmp/{{app_domain.root}}.key \
+      -out /tmp/{{app_domain.root}}.crt \
+      -extfile /tmp/{{app_domain.root}}.cnf \
+      -extensions ext
+
+#- name: submit CSR to Let's Encrypt
+#  command: >
+#      letsencrypt certonly \
+#      --authenticator manual \
+#      -- server https://acme-v01.api.letsencrypt.org/directory --text \
+#      -- email webmaster@{{domain_name}} \
+#      -- csr {{domain_name}}.csr
+
+- name: create /etc/nginx/ssl
+  file: path=/etc/nginx/ssl state=directory
+  become: yes
+
+- name: install cert
+  command: mv /tmp/{{app_domain.root}}.crt /etc/nginx/ssl
+  become: yes
+
+- name: install private key
+  command: mv /tmp/{{app_domain.root}}.key /etc/nginx/ssl
+  become: yes
+
+- name: reload Nginx
+  service: name=nginx state=reloaded
+  become: yes
+
+# cleanup
+- name: delete /tmp/{{app_domain.root}}.csr
+  file: path=/tmp/{{app_domain.root}}.csr state=absent
+
+- name: delete /tmp/{{app_domain.root}}.cnf
+  file: path=/tmp/{{app_domain.root}}.cnf state=absent

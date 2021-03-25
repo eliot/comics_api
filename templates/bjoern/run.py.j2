@@ -1,0 +1,6 @@
+'''Run the app with Bjoern'''
+import bjoern
+
+from {{app_bjoern_module_path}} import app
+
+bjoern.run(app, 'unix://{{ app_sock_path_api }}')

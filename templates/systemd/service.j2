@@ -1,0 +1,13 @@
+[Unit]
+Description={{app_domain.api}} web application
+After=network.target
+
+[Service]
+User={{app_user}}
+WorkingDirectory={{app_root}}
+Environment=APP_CONFIG_PATH={{app_root}}/config.py
+ExecStart={{app_root}}/venv/bin/python3 {{app_root}}/run.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,123 @@
+{# Virtual host configuration for metacomic #}
+# server config for {{app_domain.root}}
+
+# redirect non-www to www
+server {
+	server_name {{app_domain.root}};
+	return 301 https://{{app_domain.primary}}$request_uri;
+}
+
+# redirect http to https
+server {
+	server_name {{app_domain.primary}};
+	return 301 https://{{app_domain.primary}}$request_uri;
+}
+
+server {
+	listen 443;
+	server_name {{app_domain.primary}};
+	root {{ app_webroot }};
+	index index.html index.htm;
+
+	ssl on;
+	ssl_certificate /etc/nginx/ssl/{{app_domain.root}}.crt;
+	ssl_certificate_key /etc/ssl/private/{{app_domain.root}}.pem;
+
+	ssl_session_timeout 10m;
+	ssl_session_cache shared:SSL:10m;
+
+	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+	ssl_prefer_server_ciphers on;
+	ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
+
+	#location @python {
+	#	proxy_pass http://unix:{{app_sock_path}};
+	#	include proxy_params;
+	#}
+
+	location / {
+		#try_files $uri @python;
+	}
+
+  # reduce log spam
+	location = /favicon.ico {
+		access_log off;
+	}
+
+	# deny access to hidden files
+	location ~ /\. {
+		deny all;
+	}
+}
+
+# redirect http to https
+server {
+	server_name {{app_domain.api}};
+	return 301 https://{{app_domain.api}}$request_uri;
+}
+
+server {
+	listen 443;
+	server_name {{app_domain.api}};
+	root {{ app_root }}/public_html/;
+	index index.html index.htm;
+
+	ssl on;
+	ssl_certificate /etc/nginx/ssl/{{app_domain.root}}.crt;
+	ssl_certificate_key /etc/ssl/private/{{app_domain.root}}.pem;
+
+	ssl_session_timeout 10m;
+	ssl_session_cache shared:SSL:10m;
+
+	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+	ssl_prefer_server_ciphers on;
+	ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
+
+	location @python {
+		proxy_pass http://unix:{{app_sock_path_api}};
+		include proxy_params;
+	}
+
+	location / {
+		try_files $uri @python;
+	}
+
+  # reduce log spam
+	location = /favicon.ico {
+		access_log off;
+	}
+
+	# deny access to hidden files
+	location ~ /\. {
+		deny all;
+	}
+}
+
+
+# redirect http static domain to https
+server {
+	server_name {{app_domain.static}};
+	return 301 https://{{app_domain.static}}$request_uri;
+}
+
+# cookie-less domain for static content
+server {
+	listen 443;
+	server_name {{app_domain.static}};
+
+	ssl on;
+	ssl_certificate /etc/nginx/ssl/{{app_domain.root}}.crt;
+	ssl_certificate_key /etc/ssl/private/{{app_domain.root}}.pem;
+
+	ssl_session_timeout 10m;
+	ssl_session_cache shared:SSL:10m;
+
+	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+	ssl_prefer_server_ciphers on;
+	ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
+
+	location / {
+		root {{ app_root }}/static;
+		expires 1y;
+	}
+}

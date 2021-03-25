@@ -10,7 +10,8 @@ flask-restful = "*"
 peewee = "*"
 psycopg2 = "*"
 scrapy = "*"
-pymongo = "*"
+itemadapter = "*"
+bjoern = "*"
 
 [requires]
 python_version = "3.7"
